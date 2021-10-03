@@ -108,7 +108,7 @@ class Coordinator : public commute::rpc::ServiceBase<Coordinator>,
   // RPC handlers
 
   void Set(Key key, Value value) {
-    WriteTimestamp write_ts = ChooseWriteTimestamp();
+    WriteTimestamp write_ts = ChooseWriteTimestamp(key);
     write_ts.local = timestamp_.fetch_add(1);
     LOG_INFO("Write timestamp: {}", write_ts);
 
@@ -165,15 +165,14 @@ class Coordinator : public commute::rpc::ServiceBase<Coordinator>,
   }
 
  private:
-  WriteTimestamp ChooseWriteTimestamp() const {
-    //    return {node::rt::WallTimeNow().ToJiffies().Count()};
+  WriteTimestamp ChooseWriteTimestamp(Key key) const {
     std::vector<Future<StampedValue>> reads;
 
     // Broadcast LocalRead
     for (const auto& peer : ListPeers().WithMe()) {
       reads.push_back(  //
           commute::rpc::Call("Replica.LocalRead")
-              .Args<Key>("")
+              .Args(key)
               .Via(Channel(peer))
               .Context(await::context::ThisFiber())
               .AtLeastOnce());
@@ -205,7 +204,6 @@ class Coordinator : public commute::rpc::ServiceBase<Coordinator>,
  private:
   timber::Logger logger_;
   twist::stdlike::atomic<uint64_t> timestamp_{0};
-  //  uint64_t timestamp_;
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -228,11 +226,6 @@ class Replica : public commute::rpc::ServiceBase<Replica> {
 
   void LocalWrite(Key key, StampedValue target_value) {
     std::lock_guard<await::fibers::Mutex> lock(mutex_);
-
-    if (max_timestamp_.timestamp < target_value.timestamp) {
-      max_timestamp_.timestamp = target_value.timestamp;
-    }
-
     std::optional<StampedValue> local_value = kv_store_.TryGet(key);
 
     if (!local_value.has_value()) {
@@ -247,10 +240,6 @@ class Replica : public commute::rpc::ServiceBase<Replica> {
   }
 
   StampedValue LocalRead(Key key) {
-    std::lock_guard<await::fibers::Mutex> lock(mutex_);
-    if (key.empty()) {
-      return max_timestamp_;
-    }
     return kv_store_.GetOr(key, {"", WriteTimestamp::Min()});
   }
 
@@ -267,7 +256,6 @@ class Replica : public commute::rpc::ServiceBase<Replica> {
 
   timber::Logger logger_;
   await::fibers::Mutex mutex_;
-  StampedValue max_timestamp_{"", WriteTimestamp::Min()};
 };
 
 //////////////////////////////////////////////////////////////////////
