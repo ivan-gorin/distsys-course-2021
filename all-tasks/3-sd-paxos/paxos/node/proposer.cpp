@@ -73,15 +73,12 @@ Value Proposer::Phase1(Value input) {
         return answer.value();
       }
     }
-    Future<void> timer =
-        node::GetRuntime().TimeService()->After(backoff.Next());
+    Future<void> timer = node::rt::After(backoff.Next());
     await::fibers::Await(std::move(timer)).ExpectOk();
   }
 }
 
 std::optional<Value> Proposer::Phase2(Value input, ProposalNumber n) {
-  paxos::Backoff::Params params{0, 10, 2};
-  paxos::Backoff backoff(params);
   proto::Accept::Request request{n, input};
   std::vector<Future<proto::Accept::Response>> accepts;
 
