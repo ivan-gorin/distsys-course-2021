@@ -32,7 +32,7 @@ struct Backoff {
 
  private:
   Jiffies ComputeNext(Jiffies curr) {
-    size_t random_factor = (double)1000 / whirl::node::rt::RandomNumber(1000);
+    size_t random_factor = whirl::node::rt::RandomNumber(1, 5);
     return std::min(params_.max, curr * params_.factor * random_factor);
   }
 
