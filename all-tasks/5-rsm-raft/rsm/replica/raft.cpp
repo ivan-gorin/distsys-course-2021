@@ -82,18 +82,20 @@ class Raft : public IReplica,
     LOG_INFO("Starting...");
     state_machine_->Reset();
     log_.Open();
-    // TODO: fill persisted values too
     auto st_voted_for = storage_.TryLoad<std::string>("votedFor");
     if (st_voted_for.has_value()) {
       voted_for_ = st_voted_for.value();
+      persisted_voted_for_ = st_voted_for.value();
     }
     auto st_term = storage_.TryLoad<size_t>("currentTerm");
     if (st_term.has_value()) {
       term_ = st_term.value();
+      persisted_term_ = term_;
     }
     auto st_commit_index = storage_.TryLoad<size_t>("commitIndex");
     if (st_commit_index.has_value()) {
       commit_index_ = st_commit_index.value();
+      persisted_commit_index_ = commit_index_;
     }
     LOG_INFO("Filling cache, commit index {} log length {}", commit_index_,
              log_.Length());
@@ -377,7 +379,7 @@ class Raft : public IReplica,
     auto saved_cur_term = term_;
     election_reset_event_ = node::rt::MonotonicNow();
     voted_for_ = node::rt::HostName();
-    // TODO: leader_.reset();
+    // TODO: maybe leader_.reset();
     PersistToStorage();
     LOG_INFO("became candidate for term {}.", saved_cur_term);
     std::shared_ptr<size_t> votes_received = std::make_shared<size_t>(1);
@@ -542,7 +544,7 @@ class Raft : public IReplica,
   Jiffies ElectionTimeout() const {
     uint64_t rtt = node::rt::Config()->GetInt<uint64_t>("net.rtt");
     // Your code goes here
-    return Jiffies{15 * rtt + node::rt::RandomNumber(100)};
+    return Jiffies{6 * rtt + node::rt::RandomNumber(100)};
   }
 
   void PersistToStorage() {
