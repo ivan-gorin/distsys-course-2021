@@ -1,0 +1,10 @@
+{
+  "tests": [
+    {
+      "profiles": ["Debug"],
+      "targets": ["tests"]
+    }
+  ],
+  "submit_files": ["rpc/reliable.cpp"],
+  "lint_files": ["rpc", "runtime"]
+}

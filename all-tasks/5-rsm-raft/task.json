@@ -1,0 +1,37 @@
+{
+  "tests": [
+    {
+      "profiles": ["Release"],
+      "targets": ["tests-1"],
+      "args": [
+        "--det",
+        "--sims", "3000",
+        "--quiet"
+      ]
+    },
+    {
+      "profiles": ["Release"],
+      "targets": ["tests-2"],
+      "args": [
+        "--det",
+        "--sims", "3000",
+        "--quiet"
+      ]
+    },
+    {
+      "profiles": ["Release"],
+      "targets": ["tests-3"],
+      "args": [
+        "--det",
+        "--sims", "3000",
+        "--quiet"
+      ]
+    }
+  ],
+  "submit_files": [
+    "rsm/replica"
+  ],
+  "lint_files": [
+    "rsm/replica"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "tests": [
+    {
+      "profiles": ["Release"],
+      "targets": ["tests-1"],
+      "args": [
+        "--det",
+        "--sims", "5000",
+        "--quiet"
+      ]
+    },
+    {
+      "profiles": ["Release"],
+      "targets": ["tests-2"],
+      "args": [
+        "--det",
+        "--sims", "10000",
+        "--quiet"
+      ]
+    }
+  ],
+  "submit_files": [
+    "rsm/replica"
+  ],
+  "lint_files": [
+    "rsm/replica"
+  ]
+}

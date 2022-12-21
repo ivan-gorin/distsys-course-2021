@@ -1,0 +1,19 @@
+{
+  "tests": [
+    {
+      "profiles": ["Release"],
+      "targets": ["tests-1"],
+      "args": [
+        "--det",
+        "--sims", "30000",
+        "--quiet"
+      ]
+    }
+  ],
+  "submit_files": [
+    "kv/node"
+  ],
+  "lint_files": [
+    "kv/node"
+  ]
+}
